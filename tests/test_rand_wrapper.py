@@ -13,7 +13,7 @@ def test_string():
     return 'A kis piros labdán számos, kis fekete pötty van'
 
 
-def test_random_from_list(test_list):
+def test_random_from_list(test_list): #jo
     # Arrange
     input_list = test_list
     seed(42)
@@ -26,7 +26,7 @@ def test_random_from_list(test_list):
     assert result == expected
 
 
-def test_random_sublist_from_list(test_list):
+def test_random_sublist_from_list(test_list): #nemjo
     # Arrange
     input_list = test_list
     number_of_elements = 3
@@ -40,7 +40,7 @@ def test_random_sublist_from_list(test_list):
     assert result == expected
 
 
-def test_random_from_string(test_string):
+def test_random_from_string(test_string): #jo
     # Arrange
     input_string = test_string
     seed(42)
@@ -53,7 +53,7 @@ def test_random_from_string(test_string):
     assert result == expected
 
 
-def test_hundred_small_random():
+def test_hundred_small_random(): #nemjo
     # Arrange
     seed(42)
     expected = [0.6394267984578837,
@@ -164,7 +164,7 @@ def test_hundred_small_random():
     assert result == expected
 
 
-def test_hundred_large_random():
+def test_hundred_large_random(): #jo
     # Arrange
     seed(42)
     expected = [664,
@@ -275,7 +275,7 @@ def test_hundred_large_random():
     assert result == expected
 
 
-def test_five_random_number_div_three():
+def test_five_random_number_div_three(): #nemjo
     # Arrange
     seed(42)
     expected = [990, 180, 45, 429, 384]
@@ -287,7 +287,7 @@ def test_five_random_number_div_three():
     assert result == expected
 
 
-def test_random_reorder(test_list):
+def test_random_reorder(test_list): #nemjo
     # Arrange
     input_list = test_list
     seed(42)
@@ -300,7 +300,7 @@ def test_random_reorder(test_list):
     assert result == expected
 
 
-def test_uniform_one_to_five():
+def test_uniform_one_to_five(): #nemjo
     # Arrange
     seed(42)
     expected = 4.197133992289419
