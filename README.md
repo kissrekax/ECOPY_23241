@@ -14,8 +14,24 @@ Required for the **1st theoretic** test:
 * Variance decomposition of non-independent random variables (1)
 * Studentization / Standardization (1)
 
+Required for the **2nd theoretic** test:
+* Convergences (4)
+* Slutsky's Theorem (2)
+* Consistency (1)
+
+Required for the **3rd theoretic** test:
+* Laws of Large Numbers (2)
+* Law of the iterated logarithm(1)
+* Central Limit theorem (1)
+* Delta method (1)
+* Asymptotically Efficient Estimator (1)
 
 ## Practice
 
 **[Python Classes](https://realpython.com/python3-object-oriented-programming/)** (If the link does not work, open in **incognito  mode**.)
 
+**[Matplotlib Axes interface](https://matplotlib.org/stable/api/axes_api.html)**
+
+**[Matplotlib Axes interface 2](https://yuleii.github.io/2020/07/02/introduction-to-data-visualization-with-matplotlib.html)**
+
+**[Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html#user-guide)**
