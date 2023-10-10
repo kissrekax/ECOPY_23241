@@ -143,75 +143,61 @@ class LogisticDistribution:
 
 #CHISQUARED
 
+import random
+import typing
+import math
+import scipy.special
+
 class ChiSquaredDistribution:
     def __init__(self, rand, dof):
-
         self.rand = rand
         self.dof = dof
 
-    def pdf(self, k):
-        if self.dof < 0:
-            return 0  # PDF is defined for x >= 0
-
-        numerator = self.dof ** ((k / 2) - 1) * math.exp(-self.dof / 2)
-        denominator = 2 ** (k / 2) * math.gamma(k / 2)
-
-        pdf = numerator / denominator
-
-        return pdf
+    def pdf(self, x):
+        if x < 0:
+            return 0
+        numerator = x ** ((self.dof / 2) - 1) * math.exp(-x / 2)
+        denominator = (2 ** (self.dof / 2)) * scipy.special.gamma(self.dof / 2)
+        return numerator / denominator
 
     def cdf(self, x):
-
-        cdf_value = chisquare.cdf(x, df=self.dof)
-        return cdf_value
+        if x < 0:
+            return 0
+        return scipy.special.gammainc(self.dof / 2, x / 2)
 
     def ppf(self, p):
-
-        ppf_value = chisquare.ppf(p, df=self.dof)
-        return ppf_value
+        if p < 0 or p > 1:
+            raise ValueError("p must be in the range [0, 1]")
+        return 2 * scipy.special.gammaincinv(self.dof / 2, p)
 
     def gen_rand(self):
-        return self.rand.logistic()
+        u = self.rand.random()
+        return self.ppf(u)
 
     def mean(self):
-
-        if self.dof <= 1:
-            raise Exception("Moment undefined")
-
-        mean_value = self.dof
-        return mean_value
+        try:
+            return self.dof
+        except:
+            raise ValueError("Moment undefined")
 
     def variance(self):
-        if self.dof <= 1:
-            raise Exception("Moment undefined")
         return 2 * self.dof
 
     def skewness(self):
-        if self.dof <= 1:
-            raise Exception("Moment undefined")
-
-        return math.sqrt(8.0 / self.dof)
+        return math.sqrt(8 / self.dof)
 
     def ex_kurtosis(self):
-
-        if self.dof <= 1:
-            raise Exception("Moment undefined")
-
-        ex_kurtosis_value = 12.0 / self.dof
-        return ex_kurtosis_value
+        return 12 / self.dof
 
     def mvsk(self):
-        if self.dof == 0:
-            raise Exception("Moment undefined")
-
         mean = self.mean()
         variance = self.variance()
         skewness = self.skewness()
-        kurtosis = self.ex_kurtosis()
-
-        return [mean, variance, skewness, kurtosis]
-
-
+        ex_kurtosis = self.ex_kurtosis()
+        try:
+            return [mean, variance, skewness, ex_kurtosis]
+        except:
+            raise ValueError("Moment undefined")
 
 
 
