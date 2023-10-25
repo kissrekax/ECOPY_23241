@@ -5,9 +5,12 @@ import numpy as np
 import typing
 
 
-file_to_load = Path.cwd().parent.joinpath('data').joinpath('chipotle.tsv')
+file_to_load = '/Users/kissr/Downloads/Programming/Python/ECOPY_23241/data/chipotle.tsv'
 
 food = pd.read_csv(file_to_load, sep='\t')
+euro12 = pd.read_csv('/Users/kissr/Downloads/Programming/Python/ECOPY_23241/data/chipotle.tsv', sep='\t')
+
+print(euro12.head())
 
 
 #2
