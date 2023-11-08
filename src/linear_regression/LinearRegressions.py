@@ -132,7 +132,7 @@ class LinearRegressionNP:
         std_errors = np.sqrt(np.diagonal(X_transpose_X_inv) * rss / (n - p))
 
         # Compute the t-statistic for each coefficient
-        t_stats = beta / std_errors
+        t_stats = beta_coefficients / std_errors
 
         # Calculate the two-tailed p-values
         from scipy.stats import t
