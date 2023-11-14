@@ -200,6 +200,152 @@ class ChiSquaredDistribution:
             raise ValueError("Moment undefined")
 
 
+# UNIFORM
+
+import random
+
+class UniformDistribution:
+    def __init__(self, rand, a, b):
+        self.rand = rand
+        self.a = a
+        self.b = b
+
+    def pdf(self, x):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+
+        if x < self.a or x > self.b:
+            return 0
+        else:
+            interval_length = self.b - self.a
+            probability_density = 1 / interval_length
+            return probability_density
+
+    def cdf(self, x):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+
+        if x < self.a:
+            return 0
+        elif x >= self.b:
+            return 1
+        else:
+            interval_length = self.b - self.a
+            cumulative_probability = (x - self.a) / interval_length
+            return cumulative_probability
+
+    def ppf(self, p):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+        if p < 0 or p > 1:
+            raise ValueError("A valószínűségnek 0 és 1 között kell lennie.")
+
+        x = self.a + p * (self.b - self.a)
+        return x
+
+    def gen_random(self):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+
+        x = random.uniform(self.a, self.b)
+        return x
+
+    def mean(self):
+        return (self.a + self.b) / 2
+
+    def median(self):
+        return (self.a + self.b) / 2
+
+    def variance(self):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+        interval_length = self.b - self.a
+        return interval_length ** 2 / 12
+
+    def skewness(self):
+        return 0  # A uniform eloszlás ferdesége mindig 0
+
+    def ex_kurtosis(self):
+        return -6 / 5  # A uniform eloszlás többlet csúcsossága mindig -6/5
+
+    def mvsk(self):
+        mean = (self.a + self.b) / 2
+        variance = (self.b - self.a) ** 2 / 12
+        std_dev = (self.b - self.a) / (12 ** 0.5)
+        skewness = 0  # Uniform eloszlásnál a ferdeség értéke mindig 0
+        kurtosis = -6 / 5  # Uniform eloszlásnál a többlet csúcsosság értéke mindig -6/5
+
+        return [mean, std_dev, skewness, kurtosis]
+
+# CAUCHY
+
+import math
+import random
+
+class CauchyDistribution:
+    def __init__(self, rand, location, scale):
+        self.rand = rand
+        self.location = location
+        self.scale = scale
+
+    def pdf(self, x):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        denominator = math.pi * self.scale * (1 + ((x - self.location) / self.scale) ** 2)
+        probability_density = 1 / denominator
+        return probability_density
+
+    def cdf(self, x):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        cumulative_probability = 0.5 + math.atan((x - self.location) / self.scale) / math.pi
+        return cumulative_probability
+
+    def ppf(self, p):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+        if p < 0 or p > 1:
+            raise ValueError("A valószínűségnek 0 és 1 között kell lennie.")
+
+        x = self.location + self.scale * math.tan(math.pi * (p - 0.5))
+        return x
+
+    def gen_random(self):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        z = random.uniform(0, 1)
+        x = self.location + self.scale * math.tan(math.pi * (z - 0.5))
+        return x
+
+    def mean(self):
+        return float('nan')  # A Cauchy-eloszlásnak nincs meghatározott várható értéke
+
+    def median(self):
+        return self.location
+
+    def variance(self):
+        return float('inf')  # A Cauchy-eloszlásnak végtelen a varianciája
+
+    def skewness(self):
+        return float('nan')  # A Cauchy-eloszlásnak nincs meghatározott ferdesége
+
+    def ex_kurtosis(self):
+        return float('nan')  # A Cauchy-eloszlásnak nincs meghatározott többlet csúcsossága
+
+    def mvsk(self):
+        mean = float('nan')
+        variance = float('inf')
+        std_dev = float('inf')
+        skewness = float('nan')
+        kurtosis = float('nan')
+
+        return [mean, std_dev, skewness, kurtosis]
+
+
+
 
 
 

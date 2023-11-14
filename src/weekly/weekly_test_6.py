@@ -5,6 +5,7 @@ from typing import List, Dict
 import matplotlib
 import matplotlib.pyplot as plt
 from pathlib import Path
+import statsmodels.api as sm
 
 sp500 = pd.read_parquet('/Users/kissr/Downloads/Programming/Python/ECOPY_23241/data/sp500.parquet', engine='fastparquet')
 ff_factors=pd.read_parquet('/Users/kissr/Downloads/Programming/Python/ECOPY_23241/data/ff_factors.parquet', engine='fastparquet')
@@ -12,12 +13,16 @@ ff_factors=pd.read_parquet('/Users/kissr/Downloads/Programming/Python/ECOPY_2324
 #3
 merged_df = pd.merge(sp500, ff_factors, on='Date', how='left')
 
+print(merged_df.head())
+
 #4
 merged_df['Excess Return'] = merged_df['Monthly Return'] - merged_df['RF']
 
 #5
 merged_df = merged_df.sort_values(by=['Symbol', 'Date'])
 merged_df['ex_ret_1'] = merged_df.groupby('Symbol')['Excess Return'].shift(-1)
+
+print(merged_df.head())
 
 #6
 merged_df = merged_df.dropna(subset=['ex_ret_1'])
@@ -44,7 +49,7 @@ class LinearRegressionSM:
 
         right_df = sm.add_constant(right_df)
 
-        model = sm.OLS(left_df['Excess Return'], right_df).fit()
+        model = sm.OLS(left_df, right_df).fit()
 
         self._model = model
 
@@ -87,4 +92,6 @@ class LinearRegressionSM:
             return result
         else:
             raise ValueError("The model has not been fitted yet.")
+
+
 

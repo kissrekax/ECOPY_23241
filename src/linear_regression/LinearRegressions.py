@@ -1,139 +1,110 @@
 import pandas as pd
 import statsmodels.api as sm
 import numpy as np
-import typing
+import scipy
 
 
 class LinearRegressionSM:
     def __init__(self, left_hand_side, right_hand_side):
-
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self._model = None
 
-
     def fit(self):
-
         left_df = self.left_hand_side
         right_df = self.right_hand_side
-
         right_df = sm.add_constant(right_df)
-
         model = sm.OLS(left_df, right_df).fit()
-
         self._model = model
 
         return model
 
     def get_params(self):
-
-        if self._model is not None:
-            beta_coefficients = self._model.params
-            return pd.Series(beta_coefficients, name='Beta coefficients')
-        else:
-            raise ValueError("The model has not been fitted yet.")
+        beta_coefficients = self._model.params
+        return pd.Series(beta_coefficients, name='Beta coefficients')
 
     def get_pvalues(self):
-
-        if self._model is not None:
-            p_values = self._model.pvalues
-            return pd.Series(p_values, name='P-values for the corresponding coefficients')
-        else:
-            raise ValueError("The model has not been fitted yet.")
+        p_values = self._model.pvalues
+        return pd.Series(p_values, name='P-values for the corresponding coefficients')
 
     def get_wald_test_result(self, restriction_matrix):
+
         if self._model is not None:
             wald_test = self._model.wald_test(restriction_matrix)
-            f_value = wald_test.statistic
-            p_value = wald_test.pvalue
+            f_value = float(wald_test.statistic)
+            p_value = float(wald_test.pvalue)
             result = f"F-value: {f_value:.3f}, p-value: {p_value:.3f}"
             return result
         else:
             raise ValueError("The model has not been fitted yet.")
 
     def get_model_goodness_values(self):
+
         if self._model is not None:
-            adjusted_r_squared = self._model.rsquared_adj
-            aic = self._model.aic
-            bic = self._model.bic
+            adjusted_r_squared = float(self._model.rsquared_adj)
+            aic = float(self._model.aic)
+            bic = float(self._model.bic)
             result = f"Adjusted R-squared: {adjusted_r_squared:.3f}, Akaike IC: {aic:.3f}, Bayes IC: {bic:.3f}"
             return result
         else:
             raise ValueError("The model has not been fitted yet.")
 
-import pandas as pd
-import typing
-import numpy as np
-from pathlib import Path
-
 
 class LinearRegressionNP:
     def __init__(self, left_hand_side, right_hand_side):
-
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
+        self.right_hand_side = sm.add_constant(self.right_hand_side)
+        self._model = None
 
     def fit(self):
-
-        Y = self.left_hand_side
-        X = self.right_hand_side
-
-        n = X.shape[0]  # Number of rows in right_hand
-        ones_column = np.ones((n, 1))
-        X = np.hstack((ones_column, X))
+        x = np.column_stack((np.ones(len(self.right_hand_side)), self.right_hand_side))
+        y = self.left_hand_side.values
+        beta = np.linalg.inv(x.T.dot(x)).dot(x.T).dot(y)
+        alpha = beta[0]
+        beta = beta[1:]
+        self.alpha = alpha
+        self.beta = beta
 
         return
 
     def get_params(self):
-
         Y = self.left_hand_side
         X = self.right_hand_side
-
-        n = X.shape[0]  # Number of rows in right_hand
-        ones_column = np.ones((n, 1))
-        X = np.hstack((ones_column, X))
-
-        X_transpose = X.T
-        X_transpose_X = X_transpose.dot(X)
-        X_transpose_y = X_transpose.dot(Y)
-
-        beta_coefficients = X_transpose_X/X_transpose_y
-        return pd.Series(beta_coefficients, name='Beta coefficients')
+        self.XtX = np.dot(np.transpose(self.right_hand_side), self.right_hand_side)
+        self.XtX_inv = np.linalg.inv(self.XtX)
+        self.Xty = np.dot(np.transpose(self.right_hand_side), self.left_hand_side)
+        self.betas = np.dot(self.XtX_inv, self.Xty)
+        return pd.Series(self.betas, name='Beta coefficients')
 
     def get_pvalues(self):
+        self.residuals = self.left_hand_side - np.dot(self.right_hand_side, self.betas)
+        self.n = len(self.left_hand_side)
+        self.K = len(self.right_hand_side.columns)
+        self.df = self.n - self.K
+        self.variance = np.dot(np.transpose(self.residuals), self.residuals) / self.df
+        self.stderror = np.sqrt(self.variance * np.diag(self.XtX_inv))  # * vs .dot
+        self.t_stat = np.divide(self.betas, self.stderror)
+        self.abs_t_stats = abs(self.t_stat)
+        term = np.minimum(scipy.stats.t.cdf(self.t_stat, self.df), 1 - scipy.stats.t.cdf(self.t_stat, self.df))
+        p_values = (term) * 2
+        return pd.Series(p_values, name='P-values for the corresponding coefficients')
 
-        Y = self.left_hand_side
-        X = self.right_hand_side
+    def get_wald_test_result(self, restr_matrix):
+        r = np.transpose(np.zeros((len(restr_matrix))))
+        term_1 = np.dot(restr_matrix, self.betas) - r
+        term_2 = np.dot(np.dot(restr_matrix, self.XtX_inv), np.transpose(restr_matrix))
+        f_stat = (np.dot(np.transpose(term_1), np.dot(np.linalg.inv(term_2), term_1)) / len(
+            restr_matrix)) / self.variance
+        p_value = (1 - scipy.stats.f.cdf(f_stat, len(restr_matrix), self.df))
+        f_stat.astype(float)
+        p_value.astype(float)
+        return f'Wald: {round(f_stat, 3)}, p-value: {round(p_value, 3)}'
 
-        n = X.shape[0]
-        ones_column = np.ones((n, 1))
-        X = np.hstack((ones_column, X))
-        X_transpose = X.T
-        X_transpose_X = X_transpose.dot(X)
-        X_transpose_y = X_transpose.dot(Y)
-
-        beta_coefficients = X_transpose_X/X_transpose_y
-
-        # Compute the residuals
-        residuals = Y - X.dot(beta_coefficients)
-
-        # Degrees of freedom
-        n = X.shape[0]  # Number of observations
-        p = X.shape[1]  # Number of features including the intercept
-
-        # Residual sum of squares
-        rss = np.sum(residuals ** 2)
-
-        # Compute the standard error of the residuals
-        residual_std_error = np.sqrt(rss / (n - p))
-
-        # Calculate the standard errors for each coefficient
-        X_transpose_X_inv = np.linalg.inv(X.T.dot(X))  # You can use your method for matrix inversion
-        std_errors = np.sqrt(np.diagonal(X_transpose_X_inv) * rss / (n - p))
-
-        # Compute the t-statistic for each coefficient
-        t_stats = beta_coefficients / std_errors
-
-        # Calculate the two-tailed p-values
-        from scipy.stats import t
-        p_values = (1 - t.cdf(np.abs(t_stats), df=n - p)) * 2
+    def get_model_goodness_values(self):
+        y_demean = self.left_hand_side - sum(self.left_hand_side) / len(self.left_hand_side)
+        SST = np.dot(np.transpose(y_demean), y_demean)
+        SSE = np.dot(np.transpose(self.residuals), self.residuals)
+        r2 = round(1 - SSE / SST, 3)
+        adj_r2 = round(1 - (self.n - 1) / (self.n - self.p) * (1 - r2), 3)
+        return f'Centered R-squared: {r2:.3f}, Adjusted R-squared: {adj_r2:.3f}'
