@@ -176,21 +176,23 @@ class LinearRegressionML:
 
     def fit(self):
         def log_likelihood(params, X, y):
-            predicted = X @ params
-            log_likelihood = -0.5 * (np.log(2 * np.pi * np.var(y)) + np.sum((y - predicted) ** 2) / np.var(y))
+            sigma = params[-1]
+            predicted = X @ params[0:-1]
+            log_likelihood = -0.5 * (np.log(2 * np.pi * sigma) + np.sum((y - predicted) ** 2) / sigma)
             return -log_likelihood
 
-        initial_params = np.zeros(self.right_hand_side.shape[1]) + 0.1
+        initial_params = np.zeros(self.right_hand_side.shape[1]+1) + 0.1
 
         self.result = scipy.optimize.minimize(log_likelihood, initial_params,args=(self.right_hand_side, self.left_hand_side), method='L-BFGS-B')
         self.params = self.result.x
+        self.betas = self.params[0:-1]
         self.hess_inv = self.result.hess_inv
 
     def get_params(self):
-        return pd.Series(self.params, name='Beta coefficients')
+        return pd.Series(self.betas, name='Beta coefficients')
 
     def get_pvalues(self):
-        self.residuals_ml = self.left_hand_side - self.right_hand_side @ self.params
+        self.residuals_ml = self.left_hand_side - self.right_hand_side @ self.betas
         self.n = self.right_hand_side.shape[0]
         self.K = self.right_hand_side.shape[1]
         self.df = self.n - self.K
@@ -198,7 +200,7 @@ class LinearRegressionML:
         self.variance_ml = np.linalg.inv(self.right_hand_side.T@self.right_hand_side)*self.sigma_sq
         #self.std_errors_ml = np.sqrt(np.abs(np.diag(self.hess_inv)))
         self.std_errors_ml = np.sqrt(np.diag(self.variance_ml))
-        self.t_stat_ml = self.params / self.std_errors_ml
+        self.t_stat_ml = self.betas / self.std_errors_ml
         term = np.minimum(scipy.stats.t.cdf(self.t_stat_ml, self.df), 1 - scipy.stats.t.cdf(self.t_stat_ml, self.df))
         p_values = term * 2
         return pd.Series(p_values, name='P-values for the corresponding coefficients')
