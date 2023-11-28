@@ -194,10 +194,11 @@ class LinearRegressionML:
         self.n = self.right_hand_side.shape[0]
         self.K = self.right_hand_side.shape[1]
         self.df = self.n - self.K
-        self.variance_ml = (self.residuals_ml.T @ self.residuals_ml) / self.n
-        self.std_errors_ml = np.sqrt(np.abs(np.diag(self.hess_inv)))
-        self.std_error_ml_2 = np.sqrt(self.variance_ml * np.diag(np.linalg.inv(self.right_hand_side.T @ self.right_hand_side)))
-        self.t_stat_ml = np.divide(self.params, self.std_errors_ml)
+        self.sigma_sq = (self.residuals_ml.T @ self.residuals_ml) / self.df
+        self.variance_ml = np.linalg.inv(self.right_hand_side.T@self.right_hand_side)*self.sigma_sq
+        #self.std_errors_ml = np.sqrt(np.abs(np.diag(self.hess_inv)))
+        self.std_errors_ml = np.sqrt(np.diag(self.variance_ml))
+        self.t_stat_ml = self.params / self.std_errors_ml
         term = np.minimum(scipy.stats.t.cdf(self.t_stat_ml, self.df), 1 - scipy.stats.t.cdf(self.t_stat_ml, self.df))
         p_values = term * 2
         return pd.Series(p_values, name='P-values for the corresponding coefficients')
