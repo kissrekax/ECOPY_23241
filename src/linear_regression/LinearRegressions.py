@@ -93,6 +93,8 @@ class LinearRegressionNP:
         lb = np.quantile(beta_samples, alpha/2, axis=0)
         ub = np.quantile(beta_samples, 1-alpha/2, axis=0)
 
+        return f'Paired Bootstraped SE: {bse:.3f}, CI: [{lb:.3f}, {ub:.3f}]'
+
     def get_wild_se_and_normal_ci(self, number_of_bootstrap_samples, alpha, random_seed):
         beta_samples = []
         np.random.seed(random_seed)
@@ -101,8 +103,8 @@ class LinearRegressionNP:
             # Generate a bootstrap sample
             idx = np.random.choice(len(self.left_hand_side), size=len(self.left_hand_side), replace=True)
             x_bootstrap = self.right_hand_side.iloc[idx]
-            V = np.random.norm(0,1,len(self.left_hand_side))
-            y_bootstrap = self.left_hand_side@self.betas +
+            V = np.random.normal(0, 1, len(self.left_hand_side))
+            y_bootstrap = x_bootstrap@self.betas + V@self.residuals.iloc[idx]
 
             # Fit the model on the bootstrap sample
             XtX_bootstrap = x_bootstrap.T @ x_bootstrap
@@ -124,8 +126,7 @@ class LinearRegressionNP:
         #lb = np.quantile(beta_samples, alpha / 2, axis=0)
         #ub = np.quantile(beta_samples, 1 - alpha / 2, axis=0)
 
-
-        return f'Paired Bootstraped SE: {bse:.3f}, CI: [{lb:.3f}, {ub:.3f}]'
+        return f'Wild Bootstraped SE: {bse:.3f}, CI: [{lb:.3f}, {ub:.3f}]'
 
     def get_pvalues(self):
         self.residuals = self.left_hand_side - np.dot(self.right_hand_side, self.betas)
